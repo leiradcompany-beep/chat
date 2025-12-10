@@ -3,463 +3,395 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Nexus - Ultimate Studio</title>
+    <title>AI Studio - Multi-Model Chat</title>
     
-    <!-- Puter.js (Core AI) -->
+    <!-- Puter.js (The Brain) -->
     <script src="https://js.puter.com/v2/"></script>
     
-    <!-- Markdown Parser -->
+    <!-- Markdown Parser (For proper text formatting) -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     
-    <!-- Syntax Highlighting (For Code) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <!-- Code Highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     
-    <!-- Icons -->
+    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
         :root {
-            --bg-dark: #09090b;
-            --sidebar-bg: #121214;
-            --chat-bg: #000000;
-            --panel-border: #27272a;
-            --accent-primary: #6366f1; /* Indigo */
-            --accent-secondary: #a855f7; /* Purple */
-            --accent-gradient: linear-gradient(135deg, #6366f1, #a855f7);
-            --text-main: #e4e4e7;
-            --text-muted: #a1a1aa;
-            --user-bubble: #27272a;
-            --ai-bubble: #18181b;
+            --bg-color: #0f172a;       /* Deep Blue/Black */
+            --sidebar-bg: #1e293b;     /* Slate */
+            --chat-bg: #0f172a;
+            --input-bg: #1e293b;
+            --border-color: #334155;
+            --accent-color: #3b82f6;   /* Blue */
+            --accent-hover: #2563eb;
+            --user-msg-bg: #3b82f6;
+            --ai-msg-bg: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
         }
 
         * { box-sizing: border-box; }
 
         body {
-            font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-main);
             margin: 0;
+            font-family: 'Segoe UI', Inter, Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
             display: flex;
             height: 100vh;
             overflow: hidden;
-            font-size: 15px;
         }
 
         /* --- SIDEBAR --- */
         .sidebar {
-            width: 280px;
+            width: 300px;
             background-color: var(--sidebar-bg);
-            border-right: 1px solid var(--panel-border);
+            border-right: 1px solid var(--border-color);
+            padding: 20px;
             display: flex;
             flex-direction: column;
-            padding: 20px;
             gap: 20px;
             transition: transform 0.3s ease;
             z-index: 10;
         }
 
         .brand {
-            font-size: 1.25rem;
-            font-weight: 800;
-            background: var(--accent-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: white;
             display: flex;
             align-items: center;
             gap: 10px;
-            letter-spacing: -0.5px;
+            margin-bottom: 10px;
         }
+        .brand i { color: var(--accent-color); }
 
-        .new-chat-btn {
-            background: var(--accent-gradient);
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: opacity 0.2s, transform 0.1s;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
-        }
-        .new-chat-btn:hover { opacity: 0.9; }
-        .new-chat-btn:active { transform: scale(0.98); }
-
-        .settings-group {
+        .control-group {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 8px;
         }
 
         .label {
-            font-size: 0.75rem;
-            color: var(--text-muted);
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-weight: 600;
             text-transform: uppercase;
-            font-weight: 700;
-            letter-spacing: 0.5px;
         }
 
-        .custom-select {
-            background-color: #000;
+        select {
+            background-color: var(--bg-color);
             color: white;
-            border: 1px solid var(--panel-border);
+            border: 1px solid var(--border-color);
             padding: 12px;
             border-radius: 8px;
             outline: none;
             cursor: pointer;
+            font-size: 0.95rem;
             width: 100%;
-            font-size: 0.9rem;
-            transition: border-color 0.2s;
         }
-        .custom-select:hover, .custom-select:focus { border-color: var(--accent-primary); }
+        select:focus { border-color: var(--accent-color); }
 
-        .sidebar-footer {
-            margin-top: auto;
-            border-top: 1px solid var(--panel-border);
-            padding-top: 15px;
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            text-align: center;
-        }
-
-        /* --- MAIN CHAT AREA --- */
-        .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            background: radial-gradient(circle at top right, #1e1b4b 0%, #000000 40%);
-        }
-
-        /* Header */
-        .top-bar {
-            height: 60px;
-            border-bottom: 1px solid var(--panel-border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 25px;
-            background-color: rgba(9, 9, 11, 0.8);
-            backdrop-filter: blur(10px);
-        }
-        
-        .current-model-badge {
-            font-size: 0.85rem;
-            background: rgba(255,255,255,0.05);
-            padding: 5px 12px;
-            border-radius: 20px;
-            border: 1px solid var(--panel-border);
-            color: var(--text-muted);
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 10px;
-        }
-        .icon-btn {
-            background: transparent;
-            border: 1px solid var(--panel-border);
-            color: var(--text-muted);
-            width: 35px;
-            height: 35px;
+        .action-btn {
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 12px;
             border-radius: 8px;
             cursor: pointer;
             display: flex;
             align-items: center;
-            justify-content: center;
+            gap: 10px;
             transition: all 0.2s;
+            font-weight: 500;
         }
-        .icon-btn:hover { background: #27272a; color: white; }
-        .icon-btn.danger:hover { background: #450a0a; color: #f87171; border-color: #7f1d1d; }
+        .action-btn:hover { background-color: #334155; }
+        .action-btn.danger { color: #ef4444; border-color: #7f1d1d; }
+        .action-btn.danger:hover { background-color: #450a0a; }
 
-        /* Chat History */
-        #chat-history {
+        .sidebar-footer {
+            margin-top: auto;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        /* --- MAIN CHAT AREA --- */
+        .chat-area {
             flex: 1;
-            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            background-color: var(--chat-bg);
+        }
+
+        .top-header {
+            height: 60px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            justify-content: space-between;
+            background-color: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+        }
+
+        #current-model-badge {
+            font-size: 0.85rem;
+            background: #334155;
+            padding: 4px 12px;
+            border-radius: 20px;
+            color: #cbd5e1;
+        }
+
+        /* Messages Scroll Area */
+        #messages-container {
+            flex: 1;
+            padding: 20px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 25px;
+            gap: 20px;
             scroll-behavior: smooth;
         }
 
-        .message-row {
+        .message-wrapper {
             display: flex;
             gap: 15px;
             max-width: 900px;
-            margin: 0 auto;
             width: 100%;
+            margin: 0 auto;
             animation: fadeIn 0.3s ease;
         }
 
-        .message-row.user { justify-content: flex-end; }
+        .message-wrapper.user { justify-content: flex-end; }
         
         .avatar {
-            width: 35px;
-            height: 35px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-            font-size: 14px;
+            font-size: 1rem;
         }
-        .avatar.ai { background: var(--accent-gradient); color: white; }
-        .avatar.user { background: #3f3f46; color: white; display: none; } /* Hide user avatar for cleaner look */
+        .avatar.ai { background-color: #0d9488; color: white; }
+        .avatar.user { background-color: var(--accent-color); color: white; }
 
-        .bubble {
+        .message-content {
             padding: 12px 18px;
             border-radius: 12px;
-            line-height: 1.6;
             font-size: 1rem;
+            line-height: 1.6;
             position: relative;
             word-wrap: break-word;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            max-width: 85%;
         }
 
-        .message-row.user .bubble {
-            background-color: var(--user-bubble);
+        .message-wrapper.user .message-content {
+            background-color: var(--user-msg-bg);
             color: white;
             border-bottom-right-radius: 2px;
         }
 
-        .message-row.ai .bubble {
-            background-color: var(--ai-bubble);
-            border: 1px solid var(--panel-border);
-            color: var(--text-main);
+        .message-wrapper.ai .message-content {
+            background-color: var(--ai-msg-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
             border-bottom-left-radius: 2px;
             min-width: 200px;
         }
 
-        /* Markdown & Code Styling */
-        .bubble h1, .bubble h2, .bubble h3 { margin-top: 10px; margin-bottom: 5px; color: white; }
-        .bubble p { margin: 5px 0; }
-        .bubble a { color: var(--accent-secondary); }
+        /* --- MARKDOWN & CODE STYLING (Crucial for "Proper Display") --- */
+        .markdown-body p { margin: 8px 0; }
+        .markdown-body h1, .markdown-body h2, .markdown-body h3 { margin-top: 16px; margin-bottom: 8px; color: white; }
+        .markdown-body ul, .markdown-body ol { margin-left: 20px; padding: 0; }
+        .markdown-body li { margin-bottom: 4px; }
+        .markdown-body strong { color: #fff; font-weight: 700; }
+        .markdown-body a { color: var(--accent-color); }
         
         /* Code Blocks */
-        pre {
-            background: #0d0d0d;
+        .markdown-body pre {
+            background: #0d1117;
+            padding: 15px;
             border-radius: 8px;
-            padding: 0;
-            overflow: hidden;
+            overflow-x: auto;
+            border: 1px solid #30363d;
             margin: 10px 0;
-            border: 1px solid #333;
         }
-        
-        .code-header {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 12px;
-            background: #1a1a1a;
-            font-size: 0.75rem;
-            color: #888;
-            border-bottom: 1px solid #333;
-        }
-        
-        code {
-            font-family: 'Fira Code', 'Consolas', monospace;
+        .markdown-body code {
+            font-family: 'Consolas', 'Monaco', monospace;
             font-size: 0.9em;
         }
-        
-        pre code.hljs {
-            padding: 15px;
-            display: block;
-            overflow-x: auto;
+        /* Inline code */
+        .markdown-body :not(pre) > code {
+            background: rgba(255,255,255,0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #e2e8f0;
         }
 
-        /* Images */
         .generated-image {
             max-width: 100%;
             border-radius: 8px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-            border: 1px solid #333;
-            transition: transform 0.2s;
+            margin-top: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
-        .generated-image:hover { transform: scale(1.01); }
 
-        /* Input Area */
-        .input-container {
-            max-width: 900px;
-            width: 100%;
-            margin: 0 auto;
+        /* --- INPUT AREA --- */
+        .input-area {
             padding: 20px;
-            position: relative;
-        }
-
-        .input-box-wrapper {
             background-color: var(--sidebar-bg);
-            border: 1px solid var(--panel-border);
-            border-radius: 16px;
-            padding: 10px;
-            display: flex;
-            align-items: flex-end;
-            gap: 10px;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
-            transition: border-color 0.2s, box-shadow 0.2s;
+            border-top: 1px solid var(--border-color);
         }
 
-        .input-box-wrapper:focus-within {
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 15px rgba(99, 102, 241, 0.1);
+        .input-wrapper {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            border-radius: 12px;
         }
+
+        .input-wrapper:focus-within { border-color: var(--accent-color); }
 
         textarea {
             flex: 1;
             background: transparent;
             border: none;
             color: white;
+            resize: none;
+            height: 24px;
+            max-height: 200px;
             font-family: inherit;
             font-size: 1rem;
-            resize: none;
-            max-height: 200px;
-            min-height: 24px;
-            padding: 10px;
             outline: none;
+            padding: 5px;
         }
 
-        /* Send Button */
         #send-btn {
-            background: var(--accent-gradient);
+            background-color: var(--accent-color);
             color: white;
             border: none;
             width: 40px;
             height: 40px;
-            border-radius: 10px;
+            border-radius: 8px;
             cursor: pointer;
+            transition: 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: transform 0.2s;
-            flex-shrink: 0;
         }
-        #send-btn:hover { transform: scale(1.05); }
-        #send-btn:disabled { background: #333; cursor: not-allowed; transform: none; }
+        #send-btn:hover { background-color: var(--accent-hover); }
+        #send-btn:disabled { background-color: #475569; cursor: not-allowed; }
 
         /* Loader */
-        .thinking {
-            display: flex;
-            gap: 4px;
-            padding: 5px 0;
+        .typing-indicator {
+            display: flex; gap: 4px; padding: 5px;
         }
         .dot {
-            width: 6px;
-            height: 6px;
-            background: #888;
-            border-radius: 50%;
+            width: 6px; height: 6px; background: #94a3b8; border-radius: 50%;
             animation: bounce 1.4s infinite ease-in-out both;
         }
         .dot:nth-child(1) { animation-delay: -0.32s; }
         .dot:nth-child(2) { animation-delay: -0.16s; }
 
-        @keyframes bounce {
-            0%, 80%, 100% { transform: scale(0); }
-            40% { transform: scale(1); }
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         /* Scrollbar */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #444; }
-
-        /* Mobile Responsive */
-        @media (max-width: 768px) {
-            .sidebar { display: none; position: absolute; height: 100%; }
-            .sidebar.active { display: flex; }
-            .menu-toggle { display: block; }
-        }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
     </style>
 </head>
 <body>
 
     <!-- SIDEBAR -->
-    <div class="sidebar" id="sidebar">
+    <div class="sidebar">
         <div class="brand">
-            <i class="fa-solid fa-bolt"></i> AI Nexus
+            <i class="fa-solid fa-robot"></i> AI Studio Pro
         </div>
 
-        <button class="new-chat-btn" onclick="startNewChat()">
+        <button class="action-btn" onclick="addNewChat()">
             <i class="fa-solid fa-plus"></i> New Chat
         </button>
 
-        <div class="settings-group">
-            <div class="label">Mode</div>
-            <select id="mode-select" class="custom-select" onchange="updateUIForMode()">
-                <option value="chat">💬 Chat & Coding</option>
+        <div class="control-group">
+            <div class="label">Task Mode</div>
+            <select id="mode-select" onchange="toggleMode()">
+                <option value="chat">💬 Text & Coding</option>
                 <option value="image">🎨 Image Generation</option>
             </select>
         </div>
 
-        <div class="settings-group" id="model-group">
-            <div class="label">AI Model</div>
-            <select id="model-select" class="custom-select">
-                <optgroup label="Best for Logic & Coding">
+        <!-- Chat Models -->
+        <div class="control-group" id="chat-models">
+            <div class="label">Select AI Model</div>
+            <select id="ai-model-select">
+                <optgroup label="Premium / Smartest">
                     <option value="claude-3-5-sonnet">Claude 3.5 Sonnet</option>
-                    <option value="gpt-4o">GPT-4o</option>
+                    <option value="gpt-4o">GPT-4o (OpenAI)</option>
+                    <option value="mistral-large-latest">Mistral Large</option>
                 </optgroup>
-                <optgroup label="Speed & Efficiency">
-                    <option value="gpt-4o-mini">GPT-4o Mini</option>
+                <optgroup label="Fast / Efficient">
+                    <option value="gpt-4o-mini" selected>GPT-4o Mini</option>
                     <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
                 </optgroup>
                 <optgroup label="Open Source">
                     <option value="meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo">Llama 3.1 70B</option>
-                    <option value="mistral-large-latest">Mistral Large</option>
                 </optgroup>
             </select>
         </div>
 
-        <div class="settings-group" id="img-model-group" style="display:none;">
+        <!-- Image Models -->
+        <div class="control-group" id="image-models" style="display:none;">
             <div class="label">Image Model</div>
-            <select id="img-model-select" class="custom-select">
-                <option value="flux-schnell">Flux Schnell</option>
+            <select id="img-model-select">
+                <option value="flux-schnell">Flux Schnell (Best)</option>
                 <option value="sdxl">Stable Diffusion XL</option>
             </select>
         </div>
 
+        <button class="action-btn danger" onclick="clearConversation()">
+            <i class="fa-solid fa-trash"></i> Clear Screen
+        </button>
+
         <div class="sidebar-footer">
-            <p>Powered by Puter.js v2</p>
+            Powered by Puter.js
         </div>
     </div>
 
-    <!-- MAIN INTERFACE -->
-    <div class="main-content">
-        <div class="top-bar">
-            <div class="current-model-badge" id="model-display">GPT-4o</div>
-            <div class="action-buttons">
-                <button class="icon-btn danger" onclick="clearMessages()" title="Clear Screen Only">
-                    <i class="fa-solid fa-eraser"></i>
-                </button>
-                <button class="icon-btn danger" onclick="startNewChat()" title="Delete History & Reset">
-                    <i class="fa-solid fa-trash-can"></i>
-                </button>
-            </div>
+    <!-- MAIN CHAT -->
+    <div class="chat-area">
+        <div class="top-header">
+            <div style="font-weight:600;">Conversation</div>
+            <div id="current-model-badge">GPT-4o Mini</div>
         </div>
 
-        <div id="chat-history">
-            <!-- Welcome Message -->
-            <div class="message-row ai">
+        <div id="messages-container">
+            <!-- Initial Message -->
+            <div class="message-wrapper ai">
                 <div class="avatar ai"><i class="fa-solid fa-robot"></i></div>
-                <div class="bubble">
-                    <h3>Welcome to AI Nexus</h3>
-                    <p>I am ready to help you with coding, writing, analysis, or image generation.</p>
-                    <p>Select a <b>Mode</b> on the left to get started.</p>
+                <div class="message-content markdown-body">
+                    <p>Hello! I am your AI assistant.</p>
+                    <p>Select a model from the left and ask me anything, or ask me to write code!</p>
                 </div>
             </div>
         </div>
 
-        <div class="input-container">
-            <div class="input-box-wrapper">
-                <textarea id="user-input" rows="1" placeholder="Type a message or paste code..." oninput="autoResize(this)" onkeydown="handleEnter(event)"></textarea>
-                <button id="send-btn" onclick="sendMessage()">
+        <div class="input-area">
+            <div class="input-wrapper">
+                <textarea id="user-input" placeholder="Type a message..." oninput="autoResize(this)" onkeydown="handleEnter(event)"></textarea>
+                <button id="send-btn" onclick="processMessage()">
                     <i class="fa-solid fa-paper-plane"></i>
                 </button>
             </div>
@@ -467,242 +399,215 @@
     </div>
 
     <script>
-        // --- CONFIG & STATE ---
-        let chatHistory = [];
-        const chatContainer = document.getElementById('chat-history');
+        // --- VARIABLES ---
+        let chatHistory = []; // Stores the conversation context
+        const messagesDiv = document.getElementById('messages-container');
         const userInput = document.getElementById('user-input');
         const sendBtn = document.getElementById('send-btn');
         const modeSelect = document.getElementById('mode-select');
-        const modelSelect = document.getElementById('model-select');
+        const aiModelSelect = document.getElementById('ai-model-select');
         const imgModelSelect = document.getElementById('img-model-select');
-        const modelDisplay = document.getElementById('model-display');
+        const chatModelsDiv = document.getElementById('chat-models');
+        const imageModelsDiv = document.getElementById('image-models');
+        const badge = document.getElementById('current-model-badge');
 
-        // Configure Markdown Parsing with Highlight.js
-        marked.setOptions({
-            highlight: function(code, lang) {
-                const language = hljs.getLanguage(lang) ? lang : 'plaintext';
-                return hljs.highlight(code, { language }).value;
-            },
-            langPrefix: 'hljs language-'
+        // --- SETUP ---
+        
+        // Update badge when selection changes
+        aiModelSelect.addEventListener('change', () => {
+             if(modeSelect.value === 'chat') badge.innerText = aiModelSelect.options[aiModelSelect.selectedIndex].text;
         });
 
-        // --- UI FUNCTIONS ---
+        function toggleMode() {
+            const mode = modeSelect.value;
+            if (mode === 'chat') {
+                chatModelsDiv.style.display = 'flex';
+                imageModelsDiv.style.display = 'none';
+                userInput.placeholder = "Ask a question or paste code...";
+                badge.innerText = aiModelSelect.options[aiModelSelect.selectedIndex].text;
+            } else {
+                chatModelsDiv.style.display = 'none';
+                imageModelsDiv.style.display = 'flex';
+                userInput.placeholder = "Describe the image to generate...";
+                badge.innerText = "Text to Image";
+            }
+        }
 
         function autoResize(textarea) {
             textarea.style.height = 'auto';
             textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
         }
 
-        function updateUIForMode() {
-            const mode = modeSelect.value;
-            if (mode === 'chat') {
-                document.getElementById('model-group').style.display = 'flex';
-                document.getElementById('img-model-group').style.display = 'none';
-                userInput.placeholder = "Ask a question, write code, or explain a concept...";
-                modelDisplay.innerText = modelSelect.options[modelSelect.selectedIndex].text;
-            } else {
-                document.getElementById('model-group').style.display = 'none';
-                document.getElementById('img-model-group').style.display = 'flex';
-                userInput.placeholder = "Describe the image you want to generate...";
-                modelDisplay.innerText = "Text to Image";
-            }
-        }
-
-        modelSelect.addEventListener('change', () => {
-            if(modeSelect.value === 'chat') modelDisplay.innerText = modelSelect.options[modelSelect.selectedIndex].text;
-        });
-
         function handleEnter(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
-                sendMessage();
+                processMessage();
             }
         }
 
         function scrollToBottom() {
-            chatContainer.scrollTop = chatContainer.scrollHeight;
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
         }
 
-        function startNewChat() {
-            if(confirm("Delete conversation history and start over?")) {
+        // --- ACTIONS ---
+
+        function addNewChat() {
+            if(confirm("Start a brand new chat? This will delete current memory.")) {
                 chatHistory = [];
-                chatContainer.innerHTML = '';
-                // Add initial greeting again
-                appendMessage('ai', "<h3>Conversation Reset.</h3><p>I'm ready for a new topic.</p>");
+                messagesDiv.innerHTML = '';
+                addMessage('ai', "<p>New chat started. I'm ready!</p>");
             }
         }
-        
-        function clearMessages() {
-            // Clears UI only, keeps history in memory (optional, typically users want Reset)
-            chatContainer.innerHTML = ''; 
+
+        function clearConversation() {
+            // Clears display but keeps memory (optional choice)
+            // To fully reset, we usually clear history too. Let's clear history for a true "Clear".
+            chatHistory = [];
+            messagesDiv.innerHTML = '';
+            addMessage('ai', "<p>Conversation cleared.</p>");
         }
 
-        // --- CORE AI LOGIC ---
+        // --- MAIN LOGIC ---
 
-        async function sendMessage() {
+        async function processMessage() {
             const text = userInput.value.trim();
             if (!text) return;
 
-            // 1. Reset Input UI
+            // 1. UI updates
             userInput.value = '';
             userInput.style.height = 'auto';
-            userInput.disabled = true;
-            sendBtn.disabled = true;
+            lockUI(true);
 
             // 2. Add User Message
-            appendMessage('user', text);
-            scrollToBottom();
+            addMessage('user', text); // User message is plain text
 
-            // 3. Prepare AI Loading Bubble
-            const aiBubbleId = 'ai-' + Date.now();
-            const loadingBubble = appendLoadingBubble(aiBubbleId);
-            scrollToBottom();
-
+            // 3. Prepare AI Message Bubble
+            const aiContentDiv = addLoadingBubble(); 
             const mode = modeSelect.value;
 
             try {
                 if (mode === 'chat') {
-                    // --- CHAT MODE ---
+                    // --- CHAT LOGIC ---
                     chatHistory.push({ role: 'user', content: text });
-                    const model = modelSelect.value;
-
-                    // Stream response
-                    const response = await puter.ai.chat(chatHistory, { model: model, stream: true });
                     
-                    let fullResponse = "";
-                    const responseElement = document.getElementById(aiBubbleId); // The content div inside the bubble
+                    const selectedModel = aiModelSelect.value;
                     
-                    // Remove loader dots immediately before streaming
-                    responseElement.innerHTML = ""; 
+                    // Streaming Request to Puter
+                    const responseStream = await puter.ai.chat(chatHistory, { 
+                        model: selectedModel, 
+                        stream: true 
+                    });
 
-                    for await (const part of response) {
-                        fullResponse += part?.text || "";
-                        // Render Markdown incrementally
-                        responseElement.innerHTML = marked.parse(fullResponse);
+                    let fullText = "";
+                    
+                    // Remove loading dots immediately before streaming starts
+                    aiContentDiv.innerHTML = ""; 
+
+                    for await (const part of responseStream) {
+                        fullText += part?.text || "";
+                        // Parse Markdown on every chunk for real-time effect
+                        aiContentDiv.innerHTML = marked.parse(fullText);
+                        
+                        // Apply code highlighting to any <pre><code> blocks found so far
+                        aiContentDiv.querySelectorAll('pre code').forEach(block => {
+                            hljs.highlightElement(block);
+                        });
+                        
                         scrollToBottom();
                     }
 
-                    // Save to history
-                    chatHistory.push({ role: 'assistant', content: fullResponse });
-
-                    // Re-run highlighting for code blocks
-                    responseElement.querySelectorAll('pre code').forEach((block) => {
-                        hljs.highlightElement(block);
-                        addCopyButton(block);
-                    });
+                    // Save AI response to history
+                    chatHistory.push({ role: 'assistant', content: fullText });
 
                 } else {
-                    // --- IMAGE MODE ---
+                    // --- IMAGE LOGIC ---
+                    // Image generation is not streaming, so we wait
                     const imgModel = imgModelSelect.value;
-                    const imageObj = await puter.ai.txt2img(text); // Puter returns an IMG element usually
-
-                    // Remove loading bubble content
-                    const responseElement = document.getElementById(aiBubbleId);
-                    responseElement.innerHTML = `<p>Generated image for: <b>${text}</b></p>`;
                     
-                    imageObj.className = 'generated-image';
-                    responseElement.appendChild(imageObj);
+                    // Puter txt2img usually returns an <img> element
+                    const imageElement = await puter.ai.txt2img(text);
+                    
+                    // Remove loading dots
+                    aiContentDiv.innerHTML = `<p>Here is your image for: <b>${text}</b></p>`;
+                    imageElement.className = 'generated-image';
+                    aiContentDiv.appendChild(imageElement);
                 }
 
-            } catch (err) {
-                const errEl = document.getElementById(aiBubbleId);
-                errEl.innerHTML = `<p style="color:#f87171">Error: ${err.message}</p>`;
-                console.error(err);
+            } catch (error) {
+                console.error(error);
+                aiContentDiv.innerHTML = `<p style="color:#ef4444">Error: ${error.message || "Something went wrong."}</p>`;
             } finally {
-                // Restore Input
-                userInput.disabled = false;
-                sendBtn.disabled = false;
-                userInput.focus();
+                lockUI(false);
                 scrollToBottom();
             }
         }
 
         // --- HELPER FUNCTIONS ---
 
-        function appendMessage(role, htmlContent) {
-            const row = document.createElement('div');
-            row.className = `message-row ${role}`;
+        function addMessage(role, content) {
+            const wrapper = document.createElement('div');
+            wrapper.className = `message-wrapper ${role}`;
 
-            // Avatar
             const avatar = document.createElement('div');
             avatar.className = `avatar ${role}`;
             avatar.innerHTML = role === 'user' ? '<i class="fa-solid fa-user"></i>' : '<i class="fa-solid fa-robot"></i>';
 
-            // Bubble
-            const bubble = document.createElement('div');
-            bubble.className = 'bubble';
+            const msgContent = document.createElement('div');
+            msgContent.className = 'message-content markdown-body';
             
             if (role === 'user') {
-                // User text is plain text usually, but we can treat as safe HTML if needed
-                bubble.textContent = htmlContent; 
+                msgContent.innerText = content; // Safe text for user
             } else {
-                bubble.innerHTML = htmlContent;
+                msgContent.innerHTML = content; // HTML for AI (already parsed or loading)
             }
 
-            if (role === 'ai') row.appendChild(avatar);
-            row.appendChild(bubble);
-            if (role === 'user') row.appendChild(avatar);
+            if (role === 'ai') wrapper.appendChild(avatar);
+            wrapper.appendChild(msgContent);
+            if (role === 'user') wrapper.appendChild(avatar);
 
-            chatContainer.appendChild(row);
-            return bubble;
+            messagesDiv.appendChild(wrapper);
+            scrollToBottom();
+            return msgContent;
         }
 
-        function appendLoadingBubble(id) {
-            const row = document.createElement('div');
-            row.className = 'message-row ai';
-            
+        function addLoadingBubble() {
+            // Adds an AI bubble with a loading animation
+            const wrapper = document.createElement('div');
+            wrapper.className = `message-wrapper ai`;
+
             const avatar = document.createElement('div');
-            avatar.className = 'avatar ai';
+            avatar.className = `avatar ai`;
             avatar.innerHTML = '<i class="fa-solid fa-robot"></i>';
 
-            const bubble = document.createElement('div');
-            bubble.className = 'bubble';
-            
-            // Content div that will be replaced by text later
-            const contentDiv = document.createElement('div');
-            contentDiv.id = id;
-            contentDiv.innerHTML = `
-                <div class="thinking">
+            const msgContent = document.createElement('div');
+            msgContent.className = 'message-content markdown-body';
+            msgContent.innerHTML = `
+                <div class="typing-indicator">
                     <div class="dot"></div>
                     <div class="dot"></div>
                     <div class="dot"></div>
                 </div>
             `;
 
-            bubble.appendChild(contentDiv);
-            row.appendChild(avatar);
-            row.appendChild(bubble);
-            chatContainer.appendChild(row);
-
-            return contentDiv;
+            wrapper.appendChild(avatar);
+            wrapper.appendChild(msgContent);
+            messagesDiv.appendChild(wrapper);
+            scrollToBottom();
+            
+            return msgContent; // Return this div so we can update it with text later
         }
 
-        function addCopyButton(codeBlock) {
-            // Adds a small copy button to code blocks
-            const pre = codeBlock.parentElement;
-            if (pre.querySelector('.copy-btn')) return;
-
-            const header = document.createElement('div');
-            header.className = 'code-header';
-            header.innerHTML = `
-                <span>Code</span>
-                <span style="cursor:pointer" onclick="copyCode(this)">
-                    <i class="fa-regular fa-copy"></i> Copy
-                </span>
-            `;
-            pre.insertBefore(header, codeBlock);
+        function lockUI(isLocked) {
+            userInput.disabled = isLocked;
+            sendBtn.disabled = isLocked;
+            if(!isLocked) userInput.focus();
         }
 
-        function copyCode(btn) {
-            const pre = btn.parentElement.nextElementSibling;
-            navigator.clipboard.writeText(pre.innerText);
-            const originalHTML = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied';
-            setTimeout(() => btn.innerHTML = originalHTML, 2000);
-        }
-
-        // Initialize defaults
-        updateUIForMode();
+        // Initialize syntax highlighting configs
+        marked.setOptions({
+            breaks: true, // Enter key creates new line
+            gfm: true     // GitHub Flavored Markdown
+        });
 
     </script>
 </body>
