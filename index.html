@@ -3,71 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Studio - Multi-Model Chat</title>
+    <title>AI Nexus - Pro Studio</title>
     
-    <!-- Puter.js (The Brain) -->
+    <!-- Puter.js v2 -->
     <script src="https://js.puter.com/v2/"></script>
     
-    <!-- Markdown Parser (For proper text formatting) -->
+    <!-- Markdown & Syntax Highlighting -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    
-    <!-- Code Highlighting -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     
-    <!-- Font Awesome Icons -->
+    <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
         :root {
-            --bg-color: #0f172a;       /* Deep Blue/Black */
-            --sidebar-bg: #1e293b;     /* Slate */
-            --chat-bg: #0f172a;
-            --input-bg: #1e293b;
+            --bg-dark: #0f172a;
+            --sidebar-bg: #1e293b;
+            --chat-bg: #020617;
+            --accent-primary: #6366f1; /* Indigo */
+            --accent-hover: #4f46e5;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
             --border-color: #334155;
-            --accent-color: #3b82f6;   /* Blue */
-            --accent-hover: #2563eb;
-            --user-msg-bg: #3b82f6;
-            --ai-msg-bg: #1e293b;
-            --text-primary: #f8fafc;
-            --text-secondary: #94a3b8;
+            --user-bubble: #2563eb;
+            --ai-bubble: #1e293b;
         }
-
-        * { box-sizing: border-box; }
 
         body {
             margin: 0;
-            font-family: 'Segoe UI', Inter, Roboto, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-primary);
-            display: flex;
+            font-family: 'Segoe UI', Inter, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
             height: 100vh;
+            display: flex;
             overflow: hidden;
         }
 
-        /* --- SIDEBAR --- */
-        .sidebar {
-            width: 300px;
-            background-color: var(--sidebar-bg);
-            border-right: 1px solid var(--border-color);
-            padding: 20px;
+        /* --- LOGIN OVERLAY --- */
+        #login-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 9999;
             display: flex;
+            align-items: center;
+            justify-content: center;
             flex-direction: column;
             gap: 20px;
-            transition: transform 0.3s ease;
-            z-index: 10;
+        }
+        
+        .login-card {
+            background: var(--sidebar-bg);
+            padding: 40px;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .login-btn {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: transform 0.2s;
+        }
+        .login-btn:hover { transform: scale(1.05); }
+
+        /* --- SIDEBAR --- */
+        .sidebar {
+            width: 280px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            gap: 20px;
         }
 
         .brand {
             font-size: 1.4rem;
-            font-weight: 700;
-            color: white;
+            font-weight: 800;
+            background: linear-gradient(to right, #6366f1, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
             display: flex;
             align-items: center;
             gap: 10px;
-            margin-bottom: 10px;
         }
-        .brand i { color: var(--accent-color); }
 
         .control-group {
             display: flex;
@@ -76,51 +108,43 @@
         }
 
         .label {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            font-weight: 600;
+            font-size: 0.75rem;
+            color: var(--text-muted);
             text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.5px;
         }
 
         select {
-            background-color: var(--bg-color);
+            background-color: var(--bg-dark);
             color: white;
             border: 1px solid var(--border-color);
             padding: 12px;
             border-radius: 8px;
             outline: none;
             cursor: pointer;
-            font-size: 0.95rem;
             width: 100%;
         }
-        select:focus { border-color: var(--accent-color); }
+        select:hover { border-color: var(--accent-primary); }
 
-        .action-btn {
-            background-color: var(--bg-color);
+        .btn-reset {
+            background: transparent;
             border: 1px solid var(--border-color);
-            color: var(--text-primary);
-            padding: 12px;
+            color: #ef4444;
+            padding: 10px;
             border-radius: 8px;
             cursor: pointer;
+            margin-top: auto;
             display: flex;
             align-items: center;
-            gap: 10px;
-            transition: all 0.2s;
-            font-weight: 500;
+            justify-content: center;
+            gap: 8px;
+            transition: 0.2s;
         }
-        .action-btn:hover { background-color: #334155; }
-        .action-btn.danger { color: #ef4444; border-color: #7f1d1d; }
-        .action-btn.danger:hover { background-color: #450a0a; }
+        .btn-reset:hover { background: rgba(239, 68, 68, 0.1); border-color: #ef4444; }
 
-        .sidebar-footer {
-            margin-top: auto;
-            text-align: center;
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-        }
-
-        /* --- MAIN CHAT AREA --- */
-        .chat-area {
+        /* --- CHAT AREA --- */
+        .chat-container {
             flex: 1;
             display: flex;
             flex-direction: column;
@@ -128,94 +152,84 @@
             background-color: var(--chat-bg);
         }
 
-        .top-header {
+        .header {
             height: 60px;
             border-bottom: 1px solid var(--border-color);
             display: flex;
             align-items: center;
-            padding: 0 20px;
             justify-content: space-between;
-            background-color: rgba(30, 41, 59, 0.8);
-            backdrop-filter: blur(10px);
+            padding: 0 25px;
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(5px);
         }
 
-        #current-model-badge {
-            font-size: 0.85rem;
-            background: #334155;
+        .model-badge {
+            font-size: 0.8rem;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid var(--accent-primary);
+            color: #c7d2fe;
             padding: 4px 12px;
             border-radius: 20px;
-            color: #cbd5e1;
         }
 
-        /* Messages Scroll Area */
-        #messages-container {
+        /* Messages */
+        #messages {
             flex: 1;
-            padding: 20px;
+            padding: 30px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 25px;
             scroll-behavior: smooth;
         }
 
-        .message-wrapper {
+        .msg-row {
             display: flex;
             gap: 15px;
             max-width: 900px;
-            width: 100%;
             margin: 0 auto;
-            animation: fadeIn 0.3s ease;
+            width: 100%;
+            animation: slideUp 0.3s ease;
         }
+        .msg-row.user { justify-content: flex-end; }
 
-        .message-wrapper.user { justify-content: flex-end; }
-        
         .avatar {
-            width: 36px;
-            height: 36px;
+            width: 35px; height: 35px;
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             flex-shrink: 0;
-            font-size: 1rem;
+            font-size: 14px;
         }
-        .avatar.ai { background-color: #0d9488; color: white; }
-        .avatar.user { background-color: var(--accent-color); color: white; }
+        .avatar.ai { background: linear-gradient(135deg, #0ea5e9, #2563eb); }
+        .avatar.user { background: var(--border-color); display: none; }
 
-        .message-content {
-            padding: 12px 18px;
+        .bubble {
+            padding: 12px 20px;
             border-radius: 12px;
-            font-size: 1rem;
+            font-size: 15px;
             line-height: 1.6;
-            position: relative;
-            word-wrap: break-word;
             max-width: 85%;
+            word-wrap: break-word;
         }
-
-        .message-wrapper.user .message-content {
-            background-color: var(--user-msg-bg);
+        
+        .msg-row.user .bubble {
+            background-color: var(--user-bubble);
             color: white;
             border-bottom-right-radius: 2px;
         }
 
-        .message-wrapper.ai .message-content {
-            background-color: var(--ai-msg-bg);
+        .msg-row.ai .bubble {
+            background-color: var(--ai-bubble);
             border: 1px solid var(--border-color);
-            color: var(--text-primary);
+            color: var(--text-main);
             border-bottom-left-radius: 2px;
-            min-width: 200px;
+            min-width: 100px;
         }
 
-        /* --- MARKDOWN & CODE STYLING (Crucial for "Proper Display") --- */
-        .markdown-body p { margin: 8px 0; }
-        .markdown-body h1, .markdown-body h2, .markdown-body h3 { margin-top: 16px; margin-bottom: 8px; color: white; }
-        .markdown-body ul, .markdown-body ol { margin-left: 20px; padding: 0; }
-        .markdown-body li { margin-bottom: 4px; }
-        .markdown-body strong { color: #fff; font-weight: 700; }
-        .markdown-body a { color: var(--accent-color); }
-        
-        /* Code Blocks */
-        .markdown-body pre {
+        /* --- MARKDOWN STYLES --- */
+        .bubble h1, .bubble h2, .bubble h3 { margin-top: 10px; margin-bottom: 5px; color: white; }
+        .bubble p { margin: 5px 0; }
+        .bubble pre {
             background: #0d1117;
             padding: 15px;
             border-radius: 8px;
@@ -223,175 +237,169 @@
             border: 1px solid #30363d;
             margin: 10px 0;
         }
-        .markdown-body code {
-            font-family: 'Consolas', 'Monaco', monospace;
+        .bubble code {
+            font-family: 'Consolas', monospace;
             font-size: 0.9em;
         }
-        /* Inline code */
-        .markdown-body :not(pre) > code {
+        .bubble :not(pre) > code {
             background: rgba(255,255,255,0.1);
-            padding: 2px 6px;
+            padding: 2px 5px;
             border-radius: 4px;
             color: #e2e8f0;
         }
-
         .generated-image {
             max-width: 100%;
             border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
             margin-top: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
 
-        /* --- INPUT AREA --- */
-        .input-area {
+        /* Input Area */
+        .input-region {
             padding: 20px;
             background-color: var(--sidebar-bg);
             border-top: 1px solid var(--border-color);
         }
-
-        .input-wrapper {
+        
+        .input-box {
             max-width: 900px;
             margin: 0 auto;
-            display: flex;
-            gap: 10px;
-            align-items: flex-end;
-            background: var(--bg-color);
+            background: var(--bg-dark);
             border: 1px solid var(--border-color);
-            padding: 10px;
             border-radius: 12px;
+            padding: 8px;
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            transition: border-color 0.2s;
         }
-
-        .input-wrapper:focus-within { border-color: var(--accent-color); }
+        .input-box:focus-within { border-color: var(--accent-primary); }
 
         textarea {
             flex: 1;
             background: transparent;
             border: none;
             color: white;
-            resize: none;
-            height: 24px;
-            max-height: 200px;
             font-family: inherit;
             font-size: 1rem;
+            resize: none;
+            max-height: 200px;
+            padding: 10px;
             outline: none;
-            padding: 5px;
+            height: 24px;
         }
 
         #send-btn {
-            background-color: var(--accent-color);
+            background: var(--accent-primary);
             color: white;
             border: none;
-            width: 40px;
-            height: 40px;
+            width: 40px; height: 40px;
             border-radius: 8px;
             cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
             transition: 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
         #send-btn:hover { background-color: var(--accent-hover); }
-        #send-btn:disabled { background-color: #475569; cursor: not-allowed; }
+        #send-btn:disabled { background-color: #334155; cursor: not-allowed; }
 
         /* Loader */
-        .typing-indicator {
-            display: flex; gap: 4px; padding: 5px;
-        }
-        .dot {
-            width: 6px; height: 6px; background: #94a3b8; border-radius: 50%;
-            animation: bounce 1.4s infinite ease-in-out both;
-        }
-        .dot:nth-child(1) { animation-delay: -0.32s; }
-        .dot:nth-child(2) { animation-delay: -0.16s; }
-
-        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* Scrollbar */
+        .dots { display: flex; gap: 4px; padding: 5px; }
+        .dot { width: 6px; height: 6px; background: #aaa; border-radius: 50%; animation: pulse 1.4s infinite ease-in-out; }
+        .dot:nth-child(2) { animation-delay: 0.2s; }
+        .dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes pulse { 0%, 100% { opacity: 0.3; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
     </style>
 </head>
 <body>
 
+    <!-- LOGIN SCREEN (Fixes 401 Error) -->
+    <div id="login-overlay">
+        <div class="login-card">
+            <h2><i class="fa-solid fa-lock"></i> Authentication Required</h2>
+            <p style="color: #94a3b8; line-height: 1.5;">
+                To use the AI models (Claude, GPT-4o) via Puter.js, you need to sign in.
+                This allows the API to verify your request.
+            </p>
+            <button class="login-btn" onclick="signIn()">
+                Sign In with Puter
+            </button>
+            <p id="login-status" style="margin-top:15px; font-size:0.9rem; color:#ef4444;"></p>
+        </div>
+    </div>
+
     <!-- SIDEBAR -->
     <div class="sidebar">
         <div class="brand">
-            <i class="fa-solid fa-robot"></i> AI Studio Pro
+            <i class="fa-solid fa-bolt"></i> AI Nexus
         </div>
 
-        <button class="action-btn" onclick="addNewChat()">
-            <i class="fa-solid fa-plus"></i> New Chat
-        </button>
-
         <div class="control-group">
-            <div class="label">Task Mode</div>
+            <div class="label">Mode</div>
             <select id="mode-select" onchange="toggleMode()">
-                <option value="chat">💬 Text & Coding</option>
+                <option value="chat">💬 Chat & Coding</option>
                 <option value="image">🎨 Image Generation</option>
             </select>
         </div>
 
-        <!-- Chat Models -->
         <div class="control-group" id="chat-models">
-            <div class="label">Select AI Model</div>
-            <select id="ai-model-select">
-                <optgroup label="Premium / Smartest">
+            <div class="label">AI Model</div>
+            <select id="model-select" onchange="updateBadge()">
+                <!-- Verified Model IDs -->
+                <optgroup label="Best for Reasoning & Code">
                     <option value="claude-3-5-sonnet">Claude 3.5 Sonnet</option>
                     <option value="gpt-4o">GPT-4o (OpenAI)</option>
                     <option value="mistral-large-latest">Mistral Large</option>
                 </optgroup>
-                <optgroup label="Fast / Efficient">
-                    <option value="gpt-4o-mini" selected>GPT-4o Mini</option>
+                <optgroup label="Fast & Lightweight">
+                    <option value="gpt-4o-mini">GPT-4o Mini</option>
                     <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
-                </optgroup>
-                <optgroup label="Open Source">
-                    <option value="meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo">Llama 3.1 70B</option>
                 </optgroup>
             </select>
         </div>
 
-        <!-- Image Models -->
-        <div class="control-group" id="image-models" style="display:none;">
+        <div class="control-group" id="img-models" style="display:none;">
             <div class="label">Image Model</div>
             <select id="img-model-select">
-                <option value="flux-schnell">Flux Schnell (Best)</option>
+                <option value="flux-schnell">Flux Schnell</option>
                 <option value="sdxl">Stable Diffusion XL</option>
             </select>
         </div>
 
-        <button class="action-btn danger" onclick="clearConversation()">
-            <i class="fa-solid fa-trash"></i> Clear Screen
+        <button class="btn-reset" onclick="clearChat()">
+            <i class="fa-solid fa-trash"></i> Clear History
         </button>
 
-        <div class="sidebar-footer">
-            Powered by Puter.js
+        <div style="margin-top:10px; font-size:0.8rem; color:#64748b; text-align:center;">
+            Logged in as: <span id="username-display">...</span>
         </div>
     </div>
 
     <!-- MAIN CHAT -->
-    <div class="chat-area">
-        <div class="top-header">
-            <div style="font-weight:600;">Conversation</div>
-            <div id="current-model-badge">GPT-4o Mini</div>
+    <div class="chat-container">
+        <div class="header">
+            <div style="font-weight:600">Session</div>
+            <div class="model-badge" id="model-badge">Claude 3.5 Sonnet</div>
         </div>
 
-        <div id="messages-container">
-            <!-- Initial Message -->
-            <div class="message-wrapper ai">
+        <div id="messages">
+            <div class="msg-row ai">
                 <div class="avatar ai"><i class="fa-solid fa-robot"></i></div>
-                <div class="message-content markdown-body">
-                    <p>Hello! I am your AI assistant.</p>
-                    <p>Select a model from the left and ask me anything, or ask me to write code!</p>
+                <div class="bubble">
+                    <h3>Hello!</h3>
+                    <p>I am connected and ready. Select <b>Claude 3.5 Sonnet</b> or <b>GPT-4o</b> from the left to start coding or chatting.</p>
                 </div>
             </div>
         </div>
 
-        <div class="input-area">
-            <div class="input-wrapper">
-                <textarea id="user-input" placeholder="Type a message..." oninput="autoResize(this)" onkeydown="handleEnter(event)"></textarea>
-                <button id="send-btn" onclick="processMessage()">
+        <div class="input-region">
+            <div class="input-box">
+                <textarea id="user-input" rows="1" placeholder="Ask me anything..." oninput="autoResize(this)" onkeydown="handleEnter(event)"></textarea>
+                <button id="send-btn" onclick="sendMessage()">
                     <i class="fa-solid fa-paper-plane"></i>
                 </button>
             </div>
@@ -399,49 +407,94 @@
     </div>
 
     <script>
-        // --- VARIABLES ---
-        let chatHistory = []; // Stores the conversation context
-        const messagesDiv = document.getElementById('messages-container');
+        // --- AUTHENTICATION LOGIC ---
+        const loginOverlay = document.getElementById('login-overlay');
+        const loginStatus = document.getElementById('login-status');
+        const usernameDisplay = document.getElementById('username-display');
+
+        async function checkAuth() {
+            if (puter.auth.isSignedIn()) {
+                const user = await puter.auth.getUser();
+                usernameDisplay.innerText = user.username;
+                loginOverlay.style.display = 'none'; // Unlock UI
+            } else {
+                loginOverlay.style.display = 'flex'; // Lock UI
+            }
+        }
+
+        async function signIn() {
+            try {
+                loginStatus.innerText = "Connecting...";
+                await puter.auth.signIn();
+                await checkAuth(); // Re-check to unlock
+            } catch (err) {
+                loginStatus.innerText = "Login failed: " + err.message;
+                console.error(err);
+            }
+        }
+
+        // --- APP LOGIC ---
+        let chatHistory = [];
+        const messagesDiv = document.getElementById('messages');
         const userInput = document.getElementById('user-input');
         const sendBtn = document.getElementById('send-btn');
         const modeSelect = document.getElementById('mode-select');
-        const aiModelSelect = document.getElementById('ai-model-select');
+        const modelSelect = document.getElementById('model-select');
         const imgModelSelect = document.getElementById('img-model-select');
-        const chatModelsDiv = document.getElementById('chat-models');
-        const imageModelsDiv = document.getElementById('image-models');
-        const badge = document.getElementById('current-model-badge');
+        const badge = document.getElementById('model-badge');
 
-        // --- SETUP ---
-        
-        // Update badge when selection changes
-        aiModelSelect.addEventListener('change', () => {
-             if(modeSelect.value === 'chat') badge.innerText = aiModelSelect.options[aiModelSelect.selectedIndex].text;
+        // Initialize Markdown & Highlight.js
+        marked.setOptions({
+            highlight: function(code, lang) {
+                const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+                return hljs.highlight(code, { language }).value;
+            }
         });
+
+        // Initialize on load
+        window.addEventListener('load', checkAuth);
+
+        function updateBadge() {
+            if(modeSelect.value === 'chat') {
+                badge.innerText = modelSelect.options[modelSelect.selectedIndex].text;
+            }
+        }
 
         function toggleMode() {
             const mode = modeSelect.value;
             if (mode === 'chat') {
-                chatModelsDiv.style.display = 'flex';
-                imageModelsDiv.style.display = 'none';
+                document.getElementById('chat-models').style.display = 'flex';
+                document.getElementById('img-models').style.display = 'none';
                 userInput.placeholder = "Ask a question or paste code...";
-                badge.innerText = aiModelSelect.options[aiModelSelect.selectedIndex].text;
+                updateBadge();
             } else {
-                chatModelsDiv.style.display = 'none';
-                imageModelsDiv.style.display = 'flex';
+                document.getElementById('chat-models').style.display = 'none';
+                document.getElementById('img-models').style.display = 'flex';
                 userInput.placeholder = "Describe the image to generate...";
                 badge.innerText = "Text to Image";
             }
         }
 
-        function autoResize(textarea) {
-            textarea.style.height = 'auto';
-            textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
+        function autoResize(el) {
+            el.style.height = 'auto';
+            el.style.height = Math.min(el.scrollHeight, 200) + 'px';
         }
 
         function handleEnter(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
+            if(e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
-                processMessage();
+                sendMessage();
+            }
+        }
+
+        function clearChat() {
+            if(confirm("Clear conversation history?")) {
+                chatHistory = [];
+                messagesDiv.innerHTML = '';
+                const resetMsg = document.createElement('div');
+                resetMsg.className = 'msg-row ai';
+                resetMsg.innerHTML = `<div class="avatar ai"><i class="fa-solid fa-robot"></i></div><div class="bubble"><p>Conversation cleared.</p></div>`;
+                messagesDiv.appendChild(resetMsg);
             }
         }
 
@@ -449,166 +502,112 @@
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
         }
 
-        // --- ACTIONS ---
-
-        function addNewChat() {
-            if(confirm("Start a brand new chat? This will delete current memory.")) {
-                chatHistory = [];
-                messagesDiv.innerHTML = '';
-                addMessage('ai', "<p>New chat started. I'm ready!</p>");
-            }
-        }
-
-        function clearConversation() {
-            // Clears display but keeps memory (optional choice)
-            // To fully reset, we usually clear history too. Let's clear history for a true "Clear".
-            chatHistory = [];
-            messagesDiv.innerHTML = '';
-            addMessage('ai', "<p>Conversation cleared.</p>");
-        }
-
-        // --- MAIN LOGIC ---
-
-        async function processMessage() {
+        // --- CORE SEND LOGIC ---
+        async function sendMessage() {
             const text = userInput.value.trim();
-            if (!text) return;
+            if(!text) return;
 
-            // 1. UI updates
+            // 1. Reset Input
             userInput.value = '';
             userInput.style.height = 'auto';
-            lockUI(true);
+            userInput.disabled = true;
+            sendBtn.disabled = true;
 
-            // 2. Add User Message
-            addMessage('user', text); // User message is plain text
+            // 2. Display User Message
+            addMessage('user', text);
 
-            // 3. Prepare AI Message Bubble
-            const aiContentDiv = addLoadingBubble(); 
+            // 3. Create Loading Bubble
+            const aiBubble = addLoadingBubble();
             const mode = modeSelect.value;
 
             try {
-                if (mode === 'chat') {
-                    // --- CHAT LOGIC ---
+                if(mode === 'chat') {
+                    // Chat Mode
                     chatHistory.push({ role: 'user', content: text });
                     
-                    const selectedModel = aiModelSelect.value;
+                    const modelId = modelSelect.value;
                     
-                    // Streaming Request to Puter
+                    // Streaming Call
                     const responseStream = await puter.ai.chat(chatHistory, { 
-                        model: selectedModel, 
+                        model: modelId, 
                         stream: true 
                     });
 
-                    let fullText = "";
-                    
-                    // Remove loading dots immediately before streaming starts
-                    aiContentDiv.innerHTML = ""; 
+                    let fullResponse = "";
+                    aiBubble.innerHTML = ""; // Clear loader
 
                     for await (const part of responseStream) {
-                        fullText += part?.text || "";
-                        // Parse Markdown on every chunk for real-time effect
-                        aiContentDiv.innerHTML = marked.parse(fullText);
+                        fullResponse += part?.text || "";
+                        aiBubble.innerHTML = marked.parse(fullResponse);
                         
-                        // Apply code highlighting to any <pre><code> blocks found so far
-                        aiContentDiv.querySelectorAll('pre code').forEach(block => {
+                        // Highlight code blocks dynamically
+                        aiBubble.querySelectorAll('pre code').forEach(block => {
                             hljs.highlightElement(block);
                         });
                         
                         scrollToBottom();
                     }
-
-                    // Save AI response to history
-                    chatHistory.push({ role: 'assistant', content: fullText });
+                    
+                    chatHistory.push({ role: 'assistant', content: fullResponse });
 
                 } else {
-                    // --- IMAGE LOGIC ---
-                    // Image generation is not streaming, so we wait
+                    // Image Mode
                     const imgModel = imgModelSelect.value;
+                    const imageEl = await puter.ai.txt2img(text);
                     
-                    // Puter txt2img usually returns an <img> element
-                    const imageElement = await puter.ai.txt2img(text);
-                    
-                    // Remove loading dots
-                    aiContentDiv.innerHTML = `<p>Here is your image for: <b>${text}</b></p>`;
-                    imageElement.className = 'generated-image';
-                    aiContentDiv.appendChild(imageElement);
+                    aiBubble.innerHTML = `<p>Generated with ${imgModelSelect.options[imgModelSelect.selectedIndex].text}:</p>`;
+                    imageEl.className = 'generated-image';
+                    aiBubble.appendChild(imageEl);
                 }
 
-            } catch (error) {
-                console.error(error);
-                aiContentDiv.innerHTML = `<p style="color:#ef4444">Error: ${error.message || "Something went wrong."}</p>`;
+            } catch (err) {
+                console.error(err);
+                aiBubble.innerHTML = `<p style="color:#f87171">Error: ${err.message || "Failed to connect to AI."}</p>`;
+                if(err.message.includes('401')) {
+                    checkAuth(); // Trigger login check if 401 happens mid-session
+                }
             } finally {
-                lockUI(false);
+                userInput.disabled = false;
+                sendBtn.disabled = false;
+                userInput.focus();
                 scrollToBottom();
             }
         }
 
-        // --- HELPER FUNCTIONS ---
-
         function addMessage(role, content) {
-            const wrapper = document.createElement('div');
-            wrapper.className = `message-wrapper ${role}`;
-
-            const avatar = document.createElement('div');
-            avatar.className = `avatar ${role}`;
-            avatar.innerHTML = role === 'user' ? '<i class="fa-solid fa-user"></i>' : '<i class="fa-solid fa-robot"></i>';
-
-            const msgContent = document.createElement('div');
-            msgContent.className = 'message-content markdown-body';
+            const row = document.createElement('div');
+            row.className = `msg-row ${role}`;
             
-            if (role === 'user') {
-                msgContent.innerText = content; // Safe text for user
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            if(role === 'user') bubble.innerText = content;
+            else bubble.innerHTML = content;
+
+            if(role === 'ai') {
+                row.innerHTML = `<div class="avatar ai"><i class="fa-solid fa-robot"></i></div>`;
+                row.appendChild(bubble);
             } else {
-                msgContent.innerHTML = content; // HTML for AI (already parsed or loading)
+                row.appendChild(bubble);
+                row.innerHTML += `<div class="avatar user"><i class="fa-solid fa-user"></i></div>`;
             }
 
-            if (role === 'ai') wrapper.appendChild(avatar);
-            wrapper.appendChild(msgContent);
-            if (role === 'user') wrapper.appendChild(avatar);
-
-            messagesDiv.appendChild(wrapper);
+            messagesDiv.appendChild(row);
             scrollToBottom();
-            return msgContent;
         }
 
         function addLoadingBubble() {
-            // Adds an AI bubble with a loading animation
-            const wrapper = document.createElement('div');
-            wrapper.className = `message-wrapper ai`;
-
-            const avatar = document.createElement('div');
-            avatar.className = `avatar ai`;
-            avatar.innerHTML = '<i class="fa-solid fa-robot"></i>';
-
-            const msgContent = document.createElement('div');
-            msgContent.className = 'message-content markdown-body';
-            msgContent.innerHTML = `
-                <div class="typing-indicator">
-                    <div class="dot"></div>
-                    <div class="dot"></div>
-                    <div class="dot"></div>
+            const row = document.createElement('div');
+            row.className = 'msg-row ai';
+            row.innerHTML = `
+                <div class="avatar ai"><i class="fa-solid fa-robot"></i></div>
+                <div class="bubble">
+                    <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
                 </div>
             `;
-
-            wrapper.appendChild(avatar);
-            wrapper.appendChild(msgContent);
-            messagesDiv.appendChild(wrapper);
+            messagesDiv.appendChild(row);
             scrollToBottom();
-            
-            return msgContent; // Return this div so we can update it with text later
+            return row.querySelector('.bubble');
         }
-
-        function lockUI(isLocked) {
-            userInput.disabled = isLocked;
-            sendBtn.disabled = isLocked;
-            if(!isLocked) userInput.focus();
-        }
-
-        // Initialize syntax highlighting configs
-        marked.setOptions({
-            breaks: true, // Enter key creates new line
-            gfm: true     // GitHub Flavored Markdown
-        });
-
     </script>
 </body>
 </html>
