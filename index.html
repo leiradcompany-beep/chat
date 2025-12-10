@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Puter AI Chatbot</title>
 
+<!-- Puter SDK -->
 <script src="https://js.puter.com/v2/"></script>
 
 <style>
@@ -112,34 +113,17 @@ h1 {
   const input = document.getElementById("user-input");
   const sendBtn = document.getElementById("send-btn");
 
-  /* ✅ Authenticate */
+  /* ✅ Authenticate with Puter */
   if (!puter.authToken) {
     await puter.ui.authenticateWithPuter();
   }
 
-  /* ✅ ABSOLUTELY SAFE MESSAGE RENDERER */
-  function addMessage(value, type) {
-
-    let text = "";
-
-    if (typeof value === "string") {
-      text = value;
-    } else if (value == null) {
-      text = "";
-    } else {
-      try {
-        text = JSON.stringify(value, null, 2);
-      } catch {
-        text = String(value);
-      }
-    }
-
+  /* ✅ Safe message renderer */
+  function addMessage(text, type) {
+    const safeText = typeof text === "string" ? text : "";
     const div = document.createElement("div");
     div.className = "message " + type;
-
-    /* ✅ ONLY replace after string is guaranteed */
-    div.innerHTML = text.replace(/\n/g, "<br>");
-
+    div.innerHTML = safeText.replace(/\n/g, "<br>");
     chat.appendChild(div);
     chat.scrollTop = chat.scrollHeight;
   }
@@ -158,20 +142,30 @@ h1 {
     if (el) el.remove();
   }
 
-  /* ✅ SAFEST POSSIBLE AI HANDLER */
+  /* ✅ Extract ONLY the readable AI text */
   async function getAIResponse(prompt) {
     try {
       const res = await puter.ai.chat(prompt, {
         model: "gpt-3.5-turbo"
       });
 
-      let aiText =
-        typeof res === "string"
-          ? res
-          : res?.text
-          || res?.message
-          || res?.content
-          || "⚠️ Empty response from AI";
+      let aiText = "";
+
+      if (typeof res === "string") {
+        aiText = res;
+      } else if (res && typeof res === "object") {
+        if (typeof res.content === "string") {
+          aiText = res.content;
+        } else if (typeof res.text === "string") {
+          aiText = res.text;
+        } else if (typeof res.message === "string") {
+          aiText = res.message;
+        } else {
+          aiText = "⚠️ AI returned no text.";
+        }
+      } else {
+        aiText = "⚠️ Empty AI response.";
+      }
 
       addMessage(aiText, "ai");
 
@@ -202,8 +196,9 @@ h1 {
     if (e.key === "Enter") sendMessage();
   };
 
+  /* ✅ Welcome message */
   addMessage(
-    "Hello! I'm your AI assistant powered by Puter GPT.",
+    "Hello! I'm your AI assistant powered by Puter GPT. How can I help you today?",
     "ai"
   );
 
