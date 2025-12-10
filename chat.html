@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Puter AI Chatbot</title>
+
+<!-- Puter SDK -->
+<script src="https://js.puter.com/v2/"></script>
+
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+body {
+  background: #f4f6f8;
+  max-width: 850px;
+  margin: auto;
+  padding: 20px;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 16px;
+  color: #333;
+}
+
+#chat {
+  background: #fff;
+  padding: 16px;
+  min-height: 450px;
+  max-height: 65vh;
+  overflow-y: auto;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,.08);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.message {
+  padding: 12px 16px;
+  border-radius: 18px;
+  max-width: 80%;
+  line-height: 1.5;
+}
+
+.user {
+  align-self: flex-end;
+  background: #e3f2fd;
+  border-bottom-right-radius: 6px;
+}
+
+.ai {
+  align-self: flex-start;
+  background: #f1f8e9;
+  border-bottom-left-radius: 6px;
+}
+
+#input-area {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+#user-input {
+  flex: 1;
+  padding: 14px;
+  border-radius: 24px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+}
+
+#send-btn {
+  padding: 14px 24px;
+  border-radius: 24px;
+  border: none;
+  background: #1976d2;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+#send-btn:disabled {
+  background: #aaa;
+  cursor: not-allowed;
+}
+
+.loading {
+  padding: 12px 16px;
+  background: #f1f8e9;
+  border-radius: 18px;
+  width: fit-content;
+  align-self: flex-start;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🤖 Puter AI Chatbot</h1>
+
+<div id="chat"></div>
+
+<div id="input-area">
+  <input id="user-input" type="text" placeholder="Type your message..." />
+  <button id="send-btn">Send</button>
+</div>
+
+<script>
+(async () => {
+  const chat = document.getElementById("chat");
+  const input = document.getElementById("user-input");
+  const sendBtn = document.getElementById("send-btn");
+
+  // Authenticate user with Puter
+  if (!puter.authToken) {
+    await puter.ui.authenticateWithPuter();
+  }
+
+  function addMessage(text, type) {
+    const div = document.createElement("div");
+    div.className = "message " + type;
+    div.innerHTML = text.replace(/\n/g, "<br>");
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  function showLoading() {
+    const div = document.createElement("div");
+    div.className = "loading";
+    div.id = "loading";
+    div.textContent = "Thinking…";
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  function hideLoading() {
+    const loading = document.getElementById("loading");
+    if (loading) loading.remove();
+  }
+
+  async function getAIResponse(prompt) {
+    try {
+      const result = await puter.ai.chat(prompt, {
+        model: "gpt-3.5-turbo"
+      });
+      addMessage(result.text, "ai");
+    } catch (err) {
+      console.error("AI Error:", err);
+      addMessage("❌ AI error. Please try again.", "ai");
+    }
+  }
+
+  async function sendMessage() {
+    const text = input.value.trim();
+    if (!text) return;
+
+    addMessage(text, "user");
+    input.value = "";
+    sendBtn.disabled = true;
+
+    showLoading();
+    await getAIResponse(text);
+    hideLoading();
+
+    sendBtn.disabled = false;
+    input.focus();
+  }
+
+  sendBtn.onclick = sendMessage;
+  input.onkeypress = e => {
+    if (e.key === "Enter") sendMessage();
+  };
+
+  // Welcome message
+  addMessage(
+    "Hello! I'm your AI assistant powered by Puter GPT. How can I help you today?",
+    "ai"
+  );
+})();
+</script>
+
+</body>
+</html>
