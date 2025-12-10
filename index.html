@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Puter AI Chatbot</title>
 
-<!-- Puter SDK -->
 <script src="https://js.puter.com/v2/"></script>
 
 <style>
@@ -13,7 +12,7 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 body {
@@ -25,21 +24,20 @@ body {
 
 h1 {
   text-align: center;
-  margin-bottom: 16px;
-  color: #333;
+  margin-bottom: 14px;
 }
 
 #chat {
   background: #fff;
   padding: 16px;
-  min-height: 450px;
+  min-height: 420px;
   max-height: 65vh;
   overflow-y: auto;
   border-radius: 12px;
   box-shadow: 0 2px 10px rgba(0,0,0,.08);
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 
 .message {
@@ -47,18 +45,17 @@ h1 {
   border-radius: 18px;
   max-width: 80%;
   line-height: 1.5;
+  word-wrap: break-word;
 }
 
 .user {
   align-self: flex-end;
   background: #e3f2fd;
-  border-bottom-right-radius: 6px;
 }
 
 .ai {
   align-self: flex-start;
   background: #f1f8e9;
-  border-bottom-left-radius: 6px;
 }
 
 #input-area {
@@ -80,22 +77,19 @@ h1 {
   border-radius: 24px;
   border: none;
   background: #1976d2;
-  color: white;
-  font-weight: bold;
+  color: #fff;
   cursor: pointer;
 }
 
 #send-btn:disabled {
   background: #aaa;
-  cursor: not-allowed;
 }
 
 .loading {
-  padding: 12px 16px;
-  background: #f1f8e9;
-  border-radius: 18px;
-  width: fit-content;
   align-self: flex-start;
+  background: #f1f8e9;
+  padding: 10px 14px;
+  border-radius: 18px;
 }
 </style>
 </head>
@@ -107,49 +101,80 @@ h1 {
 <div id="chat"></div>
 
 <div id="input-area">
-  <input id="user-input" type="text" placeholder="Type your message..." />
+  <input id="user-input" placeholder="Type your message…" />
   <button id="send-btn">Send</button>
 </div>
 
 <script>
 (async () => {
+
   const chat = document.getElementById("chat");
   const input = document.getElementById("user-input");
   const sendBtn = document.getElementById("send-btn");
 
-  // Authenticate user with Puter
+  /* ✅ Authenticate */
   if (!puter.authToken) {
     await puter.ui.authenticateWithPuter();
   }
 
-  function addMessage(text, type) {
+  /* ✅ ABSOLUTELY SAFE MESSAGE RENDERER */
+  function addMessage(value, type) {
+
+    let text = "";
+
+    if (typeof value === "string") {
+      text = value;
+    } else if (value == null) {
+      text = "";
+    } else {
+      try {
+        text = JSON.stringify(value, null, 2);
+      } catch {
+        text = String(value);
+      }
+    }
+
     const div = document.createElement("div");
     div.className = "message " + type;
+
+    /* ✅ ONLY replace after string is guaranteed */
     div.innerHTML = text.replace(/\n/g, "<br>");
+
     chat.appendChild(div);
     chat.scrollTop = chat.scrollHeight;
   }
 
   function showLoading() {
     const div = document.createElement("div");
-    div.className = "loading";
     div.id = "loading";
+    div.className = "loading";
     div.textContent = "Thinking…";
     chat.appendChild(div);
     chat.scrollTop = chat.scrollHeight;
   }
 
   function hideLoading() {
-    const loading = document.getElementById("loading");
-    if (loading) loading.remove();
+    const el = document.getElementById("loading");
+    if (el) el.remove();
   }
 
+  /* ✅ SAFEST POSSIBLE AI HANDLER */
   async function getAIResponse(prompt) {
     try {
-      const result = await puter.ai.chat(prompt, {
+      const res = await puter.ai.chat(prompt, {
         model: "gpt-3.5-turbo"
       });
-      addMessage(result.text, "ai");
+
+      let aiText =
+        typeof res === "string"
+          ? res
+          : res?.text
+          || res?.message
+          || res?.content
+          || "⚠️ Empty response from AI";
+
+      addMessage(aiText, "ai");
+
     } catch (err) {
       console.error("AI Error:", err);
       addMessage("❌ AI error. Please try again.", "ai");
@@ -173,15 +198,15 @@ h1 {
   }
 
   sendBtn.onclick = sendMessage;
-  input.onkeypress = e => {
+  input.onkeydown = e => {
     if (e.key === "Enter") sendMessage();
   };
 
-  // Welcome message
   addMessage(
-    "Hello! I'm your AI assistant powered by Puter GPT. How can I help you today?",
+    "Hello! I'm your AI assistant powered by Puter GPT.",
     "ai"
   );
+
 })();
 </script>
 
